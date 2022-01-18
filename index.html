@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>MiSnap 4.9.5 - Mitek Systems Integration Example</title>
+  <meta name="description" content="Mitek Systems Mobile Web Demo">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+
+  
+</head>
+
+
+<style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: arial;
+    color: #777;
+  }
+
+  #uiContainer {
+    padding: 20px;
+  }
+
+  #uiContainer select {
+    margin-bottom: 15px;
+    width: 260px;
+  }
+
+  ul {
+    list-style: none;
+    text-align: left;
+    width: 300px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  div.integrator {
+    border: 0px;
+  }
+
+  @media (orientation: portrait) {
+    .integrator.DL_FRONT {
+      background: url('images/ghost_dlfront_portrait.png') no-repeat;
+    }
+
+    .integrator.PDF417_BARCODE {
+      /* background: url('images/ghost_barcode_portrait.png') no-repeat; */
+      background: url('images/ghost_dlfront_portrait.png') no-repeat;
+    }
+
+    .integrator.PASSPORT {
+      background: url('images/ghost_passport_portrait.png') no-repeat;
+    }
+
+    .integrator.SELFIE {
+      background: url('images/ghost_selfie_portrait.gif') no-repeat;
+    }
+
+    .integrator.SELFIE.FACE_IN_GUIDE {
+      background: url('images/ghost_selfie_portrait_green.gif') no-repeat;
+    }
+
+    .integrator.CHECK_FRONT {
+      background: url('images/ghost_checkfront_portrait.png') no-repeat;
+    }
+
+    .integrator.CHECK_BACK {
+      background: url('images/ghost_checkback_portrait.png') no-repeat;
+    }
+
+    .integrator.DOCUMENT {
+      background: url('images/ghost_document_portrait.png') no-repeat;
+    }
+  }
+
+  @media (orientation: landscape) {
+    .integrator.DL_FRONT {
+      background: url('images/ghost_dlfront.png') no-repeat;
+    }
+
+    .integrator.PDF417_BARCODE {
+      /* background: url('images/ghost_barcode.png') no-repeat; */
+      background: url('images/ghost_dlfront.png') no-repeat;
+    }
+
+    .integrator.PASSPORT {
+      background: url('images/ghost_passport.png') no-repeat;
+    }
+
+    .integrator.SELFIE {
+      background: url('images/ghost_selfie.gif') no-repeat;
+    }
+
+    .integrator.SELFIE.FACE_IN_GUIDE {
+      background: url('images/ghost_selfie_green.gif') no-repeat;
+    }
+
+    .integrator.CHECK_FRONT {
+      background: url('images/ghost_checkfront.png') no-repeat;
+    }
+
+    .integrator.CHECK_BACK {
+      background: url('images/ghost_checkback.png') no-repeat;
+    }
+
+    .integrator.DOCUMENT {
+      background: url('images/ghost_document.png') no-repeat;
+    }
+  }
+
+  #misnapError {
+    margin-top: 15px;
+    font-size: 14pt;
+    font-family: arial;
+    color: red;
+  }
+
+  #capturedImage {
+    width: 80%;
+    height: auto;
+  }
+
+  #capturedVideo {
+    width: 80%;
+    display: none;
+  }
+
+  #integratorDocTypeInput {
+    padding: 4px;
+  }
+
+  .loader-wrap {
+    position: fixed;
+    width: 120px;
+    height: 120px;
+    top: 50%;
+    left: 50%;
+    margin-left: -60px;
+    margin-top: -60px;
+    display: none;
+  }
+
+  .loader {
+    border: 16px solid #f3f3f3;
+    /* Light grey */
+    border-top: 16px solid #3498db;
+    border-bottom: 16px solid #3498db;
+    /* Blue */
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+
+  h2 {
+    color: #555;
+    margin-bottom: 10px;
+  }
+
+  h4 {
+    margin-top: 10px;
+  }
+
+  #mibiData {
+    width: 80%;
+    height: 120px;
+  }
+
+  /* (optionally) override the default size of hint message levels */
+  div#mitekHintMessage.small {
+      font-size: 1.2em;
+  }
+  div#mitekHintMessage.medium {
+      font-size: 1.7em;
+  }
+  div#mitekHintMessage.large {
+      font-size: 2.2em;
+  }
+  .version {
+    font-size: smaller;
+    position: absolute;
+    top: 0px;
+    right: 2px;
+    color: #0004ff59;
+}
+
+</style>
+
+<body>
+  
+
+    <div id="uiContainer">
+
+    <h1>MiSnap Web - Example</h1>
+
+    <h2>Auto/Manual Capture</h2>
+
+    <select name="" id="integratorDocTypeInput">
+      <option value="DL_FRONT">DL FRONT</option>
+      <option value="PDF417_BARCODE">BARCODE</option>
+      <option value="PASSPORT">PASSPORT</option>
+      <option value="SELFIE">SELFIE</option>
+      <option value="CHECK_FRONT">CHECK FRONT</option>
+      <option value="CHECK_BACK">CHECK BACK</option>
+      <option value="DOCUMENT">DOCUMENT</option>
+    </select>
+    <br />
+    <button id="integratorAutoCaptureButton" type="button" disabled="disabled" role="button">Auto Capture</button>&nbsp;
+    &nbsp;
+    <button id="integratorManualCaptureButton" type="button" disabled="disabled" role="button">Manual Capture</button>
+    <br />
+    <hr />
+    <h2>Direct Science Calls</h2>
+    <select name="" id="integratorDirectAPISelection">
+      <option value="DL_FRONT">DL FRONT</option>
+      <option value="PDF417_BARCODE">BARCODE</option>
+      <option value="PASSPORT">PASSPORT</option>
+      <option value="SELFIE">SELFIE</option>
+      <option value="CHECK_FRONT">CHECK FRONT</option>
+      <option value="CHECK_BACK">CHECK BACK</option>
+      <option value="DOCUMENT">DOCUMENT</option>
+    </select>
+
+    <!-- Direct Science calls -->
+    <!-- FileInput type -->
+    <h4>Direct Science: FileInput</h4>
+    <input id="directScience_fileInput" type="file" capture="camera" accept="image/*" disabled="disabled"/>
+
+    <!-- DataURL type -->
+    <h4 >Direct Science: DataURL</h4>
+    <button id="directScience_dataurlButton" type="button" disabled="disabled" role="button">Test</button>
+
+    <!-- ImageData type -->
+    <h4 >Direct Science: ImageData</h4>
+    <button id="directScience_imagedataButton" type="button" disabled="disabled" role="button">Test</button>
+
+    <hr/>
+
+    <h2 style="margin-top: 10px; margin-bottom: 0px;">Capture Result</h2>
+    <h3 id="misnapError"></h3>
+    <textarea id="mibiData"></textarea>
+    <img id="capturedImage"><br/><br/>
+    <video id="capturedVideo" controls="true" src=""></video><br/>
+    <!-- optional download video link -->
+    <a href="" download="" id="downloadVideo" style="display: none">Download Video</a><br/>
+    <canvas id="testCanvas"></canvas>
+    <div class="loader-wrap" id="main-spinner">
+      <div class="loader"></div>
+    </div>
+  </div>
+
+  <script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+      var timer;
+      var recentHint = null;
+      var spinner = document.getElementById('main-spinner');
+
+      var autoCaptureHints = {
+        MISNAP_HEAD_OUTSIDE: 'Place Face in Oval',
+        MISNAP_HEAD_SKEWED: 'Look Straight Ahead',
+        MISNAP_AXIS_ANGLE: 'Hold Phone Upright',
+        MISNAP_HEAD_TOO_CLOSE: 'Move Farther Away',
+        MISNAP_HEAD_TOO_FAR: 'Get Closer',
+        MISNAP_STAY_STILL: 'Hold Still',
+        MISNAP_SUCCESS: 'Success',
+        MISNAP_STOP_SMILING: 'Stop Smiling',
+        MISNAP_SMILE: 'Smile!',
+        MISNAP_READY_POSE: 'Hold it There',
+        NO_FACE_FOUND: 'Face not found',
+        MITEK_ERROR_GLARE: 'Reduce Glare',
+        MITEK_ERROR_FOUR_CORNER: 'Document Not Found',
+        MITEK_ERROR_TOO_DARK: 'Too Dark. Use good lighting',
+        MITEK_ERROR_FOCUS: 'Hold Steady',
+        MITEK_ERROR_MRZ_MISSING: 'Can\'t read every element on the photo page of your passport',
+        CV_NO_BARCODE_FOUND: 'Scanning for barcode',
+        MITEK_ERROR_TOO_FAR: 'Document Too Far',
+        MITEK_ERROR_TOO_CLOSE: 'Document Too Close',
+        MITEK_ERROR_NOT_CENTERED: 'Document Not Centered',
+        MITEK_ERROR_MIN_PADDING:  'Move further away',
+        MITEK_ERROR_HORIZONTAL_FILL: 'Move closer',
+        MITEK_ERROR_LOW_CONTRAST: 'Center document on a dark background',
+        MITEK_ERROR_BUSY_BACKGROUND: 'Center document on a plain background',
+        MITEK_ERROR_SKEW_ANGLE: 'Reduce angle'
+      };
+
+      var generalHints = {
+        MITEK_ERROR_FOUR_CORNER: 'We can\'t find the 4 corners of your document.',
+        MITEK_ERROR_TOO_DARK: 'There is not enough light on your document.',
+        MITEK_ERROR_FOCUS: 'The image is too blurry.',
+        MITEK_ERROR_GLARE: 'The image has glare.',
+        MITEK_ERROR_MIN_PADDING: 'Move the camera further away from your document.',
+        MITEK_ERROR_HORIZONTAL_FILL: 'Move the camera closer to your document.',
+        MITEK_ERROR_SKEW_ANGLE: 'Document is skewed.  Hold camera directly over your document.',
+        MITEK_ERROR_LOW_CONTRAST: 'Center document on a dark background.',
+        MITEK_ERROR_BUSY_BACKGROUND: 'The background is too busy.  Please use a solid background.',
+        MITEK_ERROR_MRZ_MISSING: 'No MRZ found',
+        CV_NO_BARCODE_FOUND: 'We were unable to detect the barcode from the back of your license.',
+        IMAGE_SMALLER_THAN_MIN_SIZE: 'The image you provided is too small.',
+        CORRUPT_IMAGE: 'The image you provided is unreadable.',
+        MISNAP_HEAD_SKEWED: 'Look Straight Ahead',
+        MISNAP_HEAD_TOO_CLOSE: 'Move Farther Away',
+        MISNAP_HEAD_TOO_FAR: 'Get Closer',
+        NO_FACE_FOUND: 'No Face Detected',
+      };
+
+      var customMessages = {
+        DL_FRONT: {
+            firstMessage: 'Center document on a dark background',
+            fourCornerMessage: 'Center document on a dark background'
+        },
+        PDF417_BARCODE: {
+            firstMessage: 'Center document on a dark background',
+            fourCornerMessage: 'Scanning for barcode'
+        },
+        PASSPORT: {
+            firstMessage: 'Center photo page on a dark background',
+            fourCornerMessage: 'Center photo page on a dark background'
+        },
+        SELFIE: {
+            firstMessage: 'Place face in oval',
+            fourCornerMessage: 'Face not found'
+        },
+        CHECK_FRONT: {
+            firstMessage: 'Center Check Front on a dark background',
+            fourCornerMessage: 'Scanning for Check Front'
+        },
+        CHECK_BACK: {
+            firstMessage: 'Center Check Back on a dark background',
+            fourCornerMessage: 'Scanning for Check Back'
+        },
+        DOCUMENT: {
+            firstMessage: 'Center document on a dark background',
+            fourCornerMessage: 'Center document on a dark background'
+        }
+      };
+
+
+      var integratorDocTypeSelection = document.getElementById('integratorDocTypeInput');
+      var integratorManualCaptureCommand = document.getElementById('integratorManualCaptureButton');
+      var integratorAutoCaptureCommand = document.getElementById('integratorAutoCaptureButton');
+
+      function toggleSpinner(style) {
+        spinner.style.display = String(style);
+      }
+
+      integratorAutoCaptureCommand.onclick = function (e) {
+        document.querySelector('#misnapError').innerHTML = '';
+        document.querySelector('#capturedImage').src = '';
+        document.querySelector('#capturedVideo').src = '';
+        document.querySelector('#capturedVideo').style.display = 'none';
+        document.getElementById('mibiData').value = '';
+
+        // may be needed to address new browser standards (explicit video play)
+        document.querySelector('div video[autoplay="true"]').play();
+
+        var self = e.target;
+        self.setAttribute('disabled', 'disabled');
+        toggleSpinner('block');
+        recentHint = null;
+        let attemptTimer = null;
+
+
+        // camera started
+        mitekScienceSDK.on('CAMERA_DISPLAY_STARTED', function (result) {
+
+          // show the first initial hint message
+          var firstMessage = customMessages[integratorDocTypeSelection.value].firstMessage;
+          mitekScienceSDK.cmd('SHOW_HINT', firstMessage);
+        });
+
+        mitekScienceSDK.on('FRAME_PROCESSING_FEEDBACK', function (result) {
+          // console.log('frame result>>', result);
+
+          recentHint = result.key;
+
+          if (integratorDocTypeSelection.value === 'SELFIE') {
+            // turn oval green if head is in guide
+            const selfieElement = document.getElementsByClassName('integrator SELFIE')[0];
+
+             if (selfieElement) {
+              if (result.key === 'MISNAP_SMILE'
+                || result.key === 'MISNAP_STOP_SMILING'
+                || result.key === 'MISNAP_READY_POSE') {
+                document.getElementsByClassName('integrator SELFIE')[0].classList.add('FACE_IN_GUIDE');
+              } else {
+                document.getElementsByClassName('integrator SELFIE')[0].classList.remove('FACE_IN_GUIDE');
+              }
+            }
+
+            if (recentHint !== null) {
+              mitekScienceSDK.cmd('SHOW_HINT', autoCaptureHints[recentHint]);
+            }
+
+          } else {
+
+            if (recentHint !== null) {
+
+              var hintMsg = autoCaptureHints[recentHint];
+
+              // use a custom message for four corners not found
+              if (recentHint === 'MITEK_ERROR_FOUR_CORNER') {
+                  hintMsg = customMessages[integratorDocTypeSelection.value].fourCornerMessage;
+              }
+
+              mitekScienceSDK.cmd('SHOW_HINT', hintMsg);
+            }
+          }
+        });
+
+        function addCaptureButton() {
+
+          var mitekDisplayContainer = document.querySelector('#mitekDisplayContainer');
+
+          // add a button to allow the user to capture a frame
+          var buttonEl = document.createElement('button');
+          buttonEl.setAttribute('id', 'mitekCaptureButtton');
+          buttonEl.setAttribute('style', 'position: absolute; right: 80px; bottom: 15px; z-index: 100');
+          buttonEl.innerHTML = 'Capture';
+          buttonEl.onclick = function (e) {
+            mitekScienceSDK.cmd('CAPTURE_FRAME');
+          };
+          mitekDisplayContainer && mitekDisplayContainer.appendChild(buttonEl);
+        }
+
+        function addCancelButton() {
+
+          var mitekDisplayContainer = document.querySelector('#mitekDisplayContainer');
+
+          // add a button to allow the user to capture a frame
+          var buttonEl = document.createElement('button');
+          buttonEl.setAttribute('id', 'mitekCancelButtton');
+          buttonEl.setAttribute('style', 'position: absolute; right: 15px; bottom: 15px; z-index: 100');
+          buttonEl.innerHTML = 'Cancel';
+          buttonEl.onclick = function (e) {
+              mitekScienceSDK.cmd('SDK_STOP');
+              clearTimeout(timer);
+              clearTimeout(attemptTimer);
+              self.removeAttribute('disabled');
+          };
+          mitekDisplayContainer && mitekDisplayContainer.appendChild(buttonEl);
+        }
+
+        function addHintMessageSizeButtons() {
+
+          var mitekDisplayContainer = document.querySelector('#mitekDisplayContainer');
+
+          // add a button to allow the user to capture a frame
+          var button1 = document.createElement('button');
+          button1.setAttribute('style', 'position: absolute; right: 75px; top: 15px; z-index: 100');
+          button1.innerHTML = '1';
+          button1.onclick = function (e) {
+            mitekScienceSDK.cmd('HINT_MESSAGE_SIZE', 1);
+          };
+          mitekDisplayContainer.appendChild(button1);
+
+          // add a button to allow the user to capture a frame
+          var button2 = document.createElement('button');
+          button2.setAttribute('style', 'position: absolute; right: 45px; top: 15px; z-index: 100');
+          button2.innerHTML = '2';
+          button2.onclick = function (e) {
+            mitekScienceSDK.cmd('HINT_MESSAGE_SIZE', 2);
+          };
+          mitekDisplayContainer.appendChild(button2);
+
+          // add a button to allow the user to capture a frame
+          var button3 = document.createElement('button');
+          button3.setAttribute('style', 'position: absolute; right: 15px; top: 15px; z-index: 100');
+          button3.innerHTML = '3';
+          button3.onclick = function (e) {
+            mitekScienceSDK.cmd('HINT_MESSAGE_SIZE', 3);
+          };
+          mitekDisplayContainer.appendChild(button3);
+        }
+
+        mitekScienceSDK.on('FRAME_PROCESSING_STARTED', function (result) {
+          toggleSpinner('none');
+
+          /* sample code to show a Capture Button */
+          // addCaptureButton();
+          
+
+          /* sample code to show a Cancel capture Button */
+          // addCancelButton();
+
+          /* sample code to show buttons to dynamically change size of hint messages */
+          // addHintMessageSizeButtons();
+
+          console.log('started capture>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+          attemptTimer = setTimeout(function () {
+            console.log('timeout');
+            clearTimeout(attemptTimer);
+            mitekScienceSDK.cmd('SDK_STOP');
+            self.removeAttribute('disabled');
+
+          }, 25000)
+
+        });
+
+        mitekScienceSDK.on('FRAME_CAPTURE_RESULT', function (result) {
+          console.log('Auto capture reuslt', result);
+
+          clearTimeout(timer);
+          clearTimeout(attemptTimer);
+
+          showCapturedImage(result);
+          showCapturedVideo(result);
+
+          self.removeAttribute('disabled');
+
+          
+        });
+
+        mitekScienceSDK.on('SDK_ERROR', function (err) {
+          toggleSpinner('none');
+          self.removeAttribute('disabled');
+
+          clearTimeout(timer);
+          showSDKError(err);
+        });
+
+        mitekScienceSDK.cmd('CAPTURE_AND_PROCESS_FRAME', {
+          mode: 'AUTO_CAPTURE',
+          documentType: integratorDocTypeSelection.value,
+          mitekSDKPath: "./mitekSDK/",
+          options: {
+            
+            qualityPercent: 80,   // value between 50 to 100 recommended
+            hintFrequencyMS: 1200, // how long the hint message displays (in MS) / note: 2400 recommended for screen readers
+            hintAriaLive: 2, //screen reader setting for hint updates value (0=off / 1=polite / 2=assertive)
+            guidePaddingLevel: 1,  // size of the overlay guide  (1=large, 2=medium, 3=small) / note: 1 is recommended
+            hintMessageSize: 2,  // set the size of the hint message (1=small / 2=medium / 3=large)
+            disableSmileDetection: false,  // disable smile detection
+            faceDetectionLevel: 1, // determines how strict face detection is (1=lenient, 2=moderate, 3=strict)
+            videoContainerId: null, // (optionally) embed the video in a custom HTML container
+            videoRecordingEnabled: false, // (optionally) record the video session / returned as a dataURL
+            audioRecordingEnabled: false, // (optionally) also record audio / only applies if videoRecordingEnabled = true)
+            videoQuality: 70, // (optionally) value between 30 to 100 recommended (normalized bitrate of video / only applies if videoRecordingEnabled = true)
+            videoRecordingMessage: 'Recording' // (optionally) override the default "Recording" message / Note: set to "" to disable icon and message
+          }
+        });
+      };
+
+
+      integratorManualCaptureCommand.onclick = function manualCaptureClick(e) {
+
+        document.querySelector('#misnapError').innerHTML = '';
+        document.querySelector('#capturedImage').src = '';
+        document.querySelector('#capturedVideo').src = '';
+        document.querySelector('#capturedVideo').style.display = 'none';
+        document.getElementById('mibiData').value = '';
+
+        mitekScienceSDK.cmd('CAPTURE_AND_PROCESS_FRAME', {
+          mode: 'MANUAL_CAPTURE',
+          documentType: integratorDocTypeSelection.value,
+          mitekSDKPath: "./mitekSDK/",
+          options: {
+            qualityPercent: 80
+          }
+        });
+
+        mitekScienceSDK.on('FRAME_PROCESSING_FEEDBACK', function (result) {
+          if (result.key == "IMAGE_SMALLER_THAN_MIN_SIZE" || result.key == "CORRUPT_IMAGE") {
+            toggleSpinner('none');
+          }
+          showError(result);
+        });
+
+        mitekScienceSDK.on('IMAGE_CAPTURED', function (){
+          toggleSpinner('block');
+        });
+
+        mitekScienceSDK.on('FRAME_PROCESSING_STARTED', function () {
+          toggleSpinner('block');
+        });
+
+        mitekScienceSDK.on('FRAME_CAPTURE_RESULT', function (result) {
+          console.log("Manual capture result", result);
+          toggleSpinner('none');
+          showCapturedImage(result);
+        });
+        mitekScienceSDK.on('SDK_ERROR', function (err) {
+          showSDKError(err);
+          toggleSpinner('none');
+        });
+      };
+
+
+      var documentTypeSelection = document.getElementById('integratorDirectAPISelection');
+      var integratorDirectFileBrowse = document.getElementById('directScience_fileInput');
+      var integratorDirectDataUrlCommand = document.getElementById('directScience_dataurlButton');
+      var integratorDirectImageDataCommand = document.getElementById('directScience_imagedataButton');
+
+      function getImageData(imagePath, imageType) {
+
+        var img = new Image();
+        var imageCanvas = document.createElement('canvas');
+        var imageCanvasContext = imageCanvas.getContext('2d');
+
+        return new Promise(function (resolve, reject) {
+
+          img.onload = function () {
+            imageCanvas.width = img.width;
+            imageCanvas.height = img.height;
+            imageCanvasContext.drawImage(img, 0, 0, imageCanvas.width, imageCanvas.height);
+
+            if (imageType === 'data_url') {
+              resolve(imageCanvas.toDataURL('image/jpeg', 0.8));
+            } else {
+              resolve(imageCanvasContext.getImageData(0, 0, imageCanvas.width, imageCanvas.height));
+            }
+          };
+
+          img.src = imagePath;
+        });
+      }
+
+      function callDirectScience(frameData) {
+
+        mitekScienceSDK.cmd('PROCESS_FRAME', {
+          documentType: documentTypeSelection.value,
+          mitekSDKPath: "./mitekSDK/",
+          options: {
+            frame: frameData,
+            qualityPercent: 80
+          }
+        });
+
+        mitekScienceSDK.on('FRAME_PROCESSING_STARTED', function () {
+          toggleSpinner('block');
+        });
+
+        mitekScienceSDK.on('FRAME_PROCESSING_FEEDBACK', function (result) {
+          showError(result);
+        });
+
+        mitekScienceSDK.on('FRAME_CAPTURE_RESULT', function (result) {
+          console.log("Direct Science Result", result);
+          toggleSpinner('none');
+          showCapturedImage(result);
+        });
+
+        mitekScienceSDK.on('SDK_ERROR', function (err) {
+          showSDKError(err);
+          toggleSpinner('none');
+        });
+      }
+
+      function showError(result) {
+        document.getElementById('misnapError').innerHTML = '';
+        setTimeout(function () {
+          var hintMsg = generalHints[result.key];
+          if (result.key === 'MITEK_ERROR_FOUR_CORNER') {
+              if (integratorDocTypeSelection.value === 'CHECK_FRONT') {
+                  hintMsg = 'Unable to find Check Front';
+              } else if (integratorDocTypeSelection.value === 'CHECK_BACK') {
+                  hintMsg = 'Unable to find Check Back';
+              }
+          }
+          document.getElementById('misnapError').innerHTML = hintMsg;
+        }, 1000);
+      }
+
+      function showSDKError(error) {
+        if (error && error.length > 0) {
+          document.querySelector('#misnapError').innerHTML = 'SDK Error: (' + error[0].code + ') ' + error[0].type;
+        }
+      }
+
+      function showCapturedImage(result) {
+
+        document.getElementById('misnapError').innerHTML = "";
+        document.getElementById('capturedImage').src = result.response.imageData;
+        
+
+        var resultStr = JSON.stringify(result.response.mibiData, undefined, 4);
+
+        // show the PDF417 string if it exists (for barcode)
+        if (typeof result.response.code != "undefined") {
+          resultStr += '\r\rPDF417 String: ' + result.response.code;
+        }
+
+        document.getElementById('mibiData').value = resultStr;
+      }
+
+      function showCapturedVideo(result) {
+        if (typeof result.response.videoData != "undefined") {
+          document.querySelector('#capturedVideo').src = result.response.videoData;
+          document.querySelector('#capturedVideo').style.display = 'block';
+
+          // optionally, allow the video to be downloaded
+          document.querySelector('#downloadVideo').href = result.response.videoData;
+          document.querySelector('#downloadVideo').style.display = 'block';
+        }
+      }
+
+      integratorDirectFileBrowse.onclick = function (e) {
+        document.querySelector('#misnapError').innerHTML = '';
+        document.querySelector('#capturedImage').src = '';
+        document.querySelector('#capturedVideo').src = '';
+        document.querySelector('#capturedVideo').style.display = 'none';
+        document.getElementById('mibiData').value = '';
+      };
+
+      integratorDirectFileBrowse.onclick = function (e) {
+        document.querySelector('#misnapError').innerHTML = '';
+        document.querySelector('#capturedImage').src = '';
+        document.querySelector('#capturedVideo').src = '';
+        document.querySelector('#capturedVideo').style.display = 'none';
+        document.getElementById('mibiData').value = '';
+      };
+
+      integratorDirectFileBrowse.onchange = function (e) {
+
+        var fileData = integratorDirectFileBrowse.files[0];
+        callDirectScience(fileData);
+      };
+
+      integratorDirectDataUrlCommand.onclick = function (e) {
+
+        getImageData('images/test_us_license_front.jpg', 'data_url').then(function (dataURL) {
+          callDirectScience(dataURL)
+        });
+      };
+
+      integratorDirectImageDataCommand.onclick = function (e) {
+
+        getImageData('images/test_us_license_front.jpg', 'image_data').then(function (imageData) {
+          callDirectScience(imageData)
+        });
+      };
+
+      // enable all the buttons
+      var btns = document.querySelectorAll("[type=button]");
+      btns.forEach(function (btn) { btn.disabled = false; });
+      document.getElementById('directScience_fileInput').disabled = false;
+    });
+
+    //prevent zoom changes in safari as it ignores the viewport meta setting for zoom.
+    document.addEventListener('gesturestart', function (e) {
+      e.preventDefault();
+    });
+
+  </script>
+  
+  
+  
+  
+<small class="version">v4.9.5</small>
+<script type="text/javascript" src="mitekSDK/../mitek-science-sdk.js"></script></body>
+
+</html>
